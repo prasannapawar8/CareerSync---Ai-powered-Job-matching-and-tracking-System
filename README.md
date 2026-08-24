@@ -2,6 +2,8 @@
 
 CareerSync is a modern, AI-powered workspace designed to supercharge your job search process. It seamlessly combines a drag-and-drop application tracking Kanban board with AI tools to help you track opportunities, parse your resume, and instantly generate highly tailored cover letters. 
 
+
+
 ## ✨ Key Features
 
 - **Application Tracking Board**: A beautiful, drag-and-drop Kanban board to organize jobs by status (Saved, Applied, Interviewing, Offered, Rejected).

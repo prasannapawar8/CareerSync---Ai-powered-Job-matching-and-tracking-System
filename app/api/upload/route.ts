@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { extractTextFromPDF } from '@/src/services/resume-parser/parsePDF';
+import { auth } from '@/src/lib/auth';
+import { prisma } from '@/src/lib/prisma';
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Please sign in before uploading a resume' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('resume') as File | null;
 
@@ -21,7 +28,9 @@ export async function POST(request: Request) {
     // Parse the PDF text
     const extractedText = await extractTextFromPDF(buffer);
 
-    // TODO: Save to database via Prisma here
+    await prisma.resume.create({
+      data: { fileName: file.name, rawText: extractedText, userId: session.user.id },
+    });
 
     return NextResponse.json({
       success: true,

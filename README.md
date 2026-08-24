@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareerSync (ApplyPilot) 🚀
 
-## Getting Started
+CareerSync is a modern, AI-powered workspace designed to supercharge your job search process. It seamlessly combines a drag-and-drop application tracking Kanban board with AI tools to help you track opportunities, parse your resume, and instantly generate highly tailored cover letters. 
 
-First, run the development server:
+## ✨ Key Features
 
+- **Application Tracking Board**: A beautiful, drag-and-drop Kanban board to organize jobs by status (Saved, Applied, Interviewing, Offered, Rejected).
+- **Chrome Extension Web Clipper**: Found a great job on LinkedIn or Indeed? Save it directly to your Kanban board without leaving the page using our custom Chrome Extension.
+- **AI Cover Letter Generator**: Generate highly personalized cover letters in seconds. The AI automatically analyzes the specific job description and your latest uploaded resume to highlight your most relevant skills.
+- **Resume Parsing**: Upload your resume in PDF format. CareerSync will automatically parse and store the text to be used across your AI tools.
+- **Modern Tech Stack**: Built with a focus on performance, aesthetics, and modern React 19 / Next.js 15 App Router architecture.
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **UI & Styling**: React 19, Tailwind CSS, custom semantic theming (Light/Dark mode)
+- **Database & ORM**: [PostgreSQL (Neon)](https://neon.tech/), [Prisma ORM](https://www.prisma.io/)
+- **Authentication**: [NextAuth.js v5](https://next-auth.js.org/) (Credentials)
+- **AI & LLMs**: [Groq](https://groq.com/) for blazing fast OSS model inference (via OpenAI SDK), utilizing Llama 3 models.
+- **Drag & Drop**: `@dnd-kit/core`
+
+---
+
+## 🚀 Getting Started (Local Development)
+
+### 1. Prerequisites
+Make sure you have [Node.js](https://nodejs.org/) installed on your machine. You will also need a PostgreSQL database (like Neon, Supabase, or a local Postgres instance).
+
+### 2. Clone and Install
+Clone the repository and install the dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd applypilot
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Environment Variables
+Create a `.env` file in the root directory and add the following variables:
+```env
+# Database (Prisma)
+DATABASE_URL="postgres://user:password@host/database"
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# NextAuth Configuration
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-super-secret-string-here"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# AI Integration (Groq API Key for blazing fast Llama 3 inference)
+GROQ_API_KEY="gsk_your_groq_api_key_here"
+```
 
-## Learn More
+### 4. Database Setup
+Sync the database schema using Prisma:
+```bash
+npx prisma generate
+npx prisma db push
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Start the Server
+Run the development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧩 Installing the Chrome Extension Web Clipper
 
-## Deploy on Vercel
+To use the Web Clipper to save jobs directly from external sites to your Kanban board:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Start your local CareerSync server (`npm run dev`) and log in.
+2. Navigate to your **Dashboard**. Under the **Web Clipper Extension** section, click **Generate API Token** and copy the token.
+3. Open Google Chrome and navigate to `chrome://extensions/`.
+4. Turn on **Developer mode** (the toggle switch in the top right corner).
+5. Click the **Load unpacked** button in the top left.
+6. Select the `chrome-extension` folder located inside this project directory.
+7. Click the new CareerSync extension icon in your Chrome toolbar.
+8. Paste the API Token you copied earlier and click **Save Token**.
+9. You can now visit job postings (e.g., on LinkedIn) and click the extension icon to instantly save them to your board!
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 License
+MIT License

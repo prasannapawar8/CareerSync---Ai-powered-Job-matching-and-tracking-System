@@ -23,6 +23,7 @@ model User {
   sessions      Session[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  extensionToken String?
 
   // CareerSync relations
   resumes       Resume[]

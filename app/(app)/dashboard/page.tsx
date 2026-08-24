@@ -3,10 +3,16 @@ import { auth } from '@/src/lib/auth';
 import { prisma } from '@/src/lib/prisma';
 import { FileUpload } from '@/src/components/ui/FileUpload';
 import KanbanBoard from '@/src/components/ui/KanbanBoard';
+import TokenManager from '@/src/components/ui/TokenManager';
 
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { extensionToken: true },
+  });
 
   const savedJobs = await prisma.savedJob.findMany({
     where: { userId: session.user.id },
@@ -40,6 +46,22 @@ export default async function DashboardPage() {
           </div>
           <div className="mt-6">
             <FileUpload />
+          </div>
+        </section>
+
+        {/* Web Clipper Settings */}
+        <section className="mt-8 rounded-xl border border-border bg-surface p-5 shadow-sm sm:p-8 max-w-3xl">
+          <div className="flex items-start gap-4 border-b border-border pb-6">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-surface-muted text-foreground">
+              <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.7" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            </span>
+            <div>
+              <h2 className="font-semibold text-foreground">Web Clipper Extension</h2>
+              <p className="mt-1 text-sm text-muted">Generate an API token to connect your Chrome Extension.</p>
+            </div>
+          </div>
+          <div className="mt-6">
+            <TokenManager initialToken={user?.extensionToken || null} />
           </div>
         </section>
 

@@ -41,9 +41,14 @@ const COLUMNS = [
   { id: JobStatus.REJECTED, title: 'Rejected' },
 ];
 
-function JobCard({ job }: { job: SavedJobData }) {
+import CoverLetterModal from './CoverLetterModal';
+
+function JobCard({ job, onClick }: { job: SavedJobData; onClick?: () => void }) {
   return (
-    <div className="bg-surface border border-border rounded-lg p-4 shadow-sm group relative">
+    <div 
+      className="bg-surface border border-border rounded-lg p-4 shadow-sm group relative cursor-pointer hover:border-accent transition-colors"
+      onClick={onClick}
+    >
       <h3 className="font-medium text-foreground text-sm line-clamp-2">{job.title}</h3>
       <p className="text-xs text-muted mt-1">{job.company}</p>
       {job.location && <p className="text-xs text-subtle mt-1">{job.location}</p>}
@@ -51,7 +56,8 @@ function JobCard({ job }: { job: SavedJobData }) {
         href={job.applyUrl}
         target="_blank"
         rel="noreferrer"
-        className="text-xs text-foreground font-medium underline underline-offset-4 hover:text-muted mt-3 inline-block"
+        onClick={(e) => e.stopPropagation()}
+        className="text-xs text-foreground font-medium underline underline-offset-4 hover:text-muted mt-3 inline-block relative z-10"
       >
         View Application ↗
       </a>
@@ -59,7 +65,7 @@ function JobCard({ job }: { job: SavedJobData }) {
   );
 }
 
-function SortableJobCard({ job }: { job: SavedJobData }) {
+function SortableJobCard({ job, onClick }: { job: SavedJobData; onClick?: () => void }) {
   const {
     attributes,
     listeners,
@@ -77,7 +83,7 @@ function SortableJobCard({ job }: { job: SavedJobData }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing touch-none">
-      <JobCard job={job} />
+      <JobCard job={job} onClick={onClick} />
     </div>
   );
 }
@@ -86,10 +92,12 @@ function Column({
   columnId,
   title,
   jobs,
+  onJobClick,
 }: {
   columnId: JobStatus;
   title: string;
   jobs: SavedJobData[];
+  onJobClick: (job: SavedJobData) => void;
 }) {
   const { setNodeRef } = useDroppable({
     id: columnId,
@@ -115,7 +123,7 @@ function Column({
         >
           <div className="flex flex-col gap-3 min-h-[150px]">
             {jobs.map((job) => (
-              <SortableJobCard key={job.id} job={job} />
+              <SortableJobCard key={job.id} job={job} onClick={() => onJobClick(job)} />
             ))}
           </div>
         </SortableContext>
@@ -132,6 +140,7 @@ export default function KanbanBoard({
   const [isMounted, setIsMounted] = useState(false);
   const [jobs, setJobs] = useState<SavedJobData[]>(initialJobs);
   const [activeJob, setActiveJob] = useState<SavedJobData | null>(null);
+  const [selectedJob, setSelectedJob] = useState<SavedJobData | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -221,7 +230,13 @@ export default function KanbanBoard({
   };
 
   return (
-    <div className="flex gap-6 overflow-x-auto pb-4 h-full">
+    <div className="flex flex-col h-full">
+      {selectedJob && (
+        <CoverLetterModal
+          job={selectedJob}
+          onClose={() => setSelectedJob(null)}
+        />
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -229,18 +244,21 @@ export default function KanbanBoard({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {COLUMNS.map((col) => (
-          <Column
-            key={col.id}
-            columnId={col.id}
-            title={col.title}
-            jobs={jobs.filter((j) => j.status === col.id)}
-          />
-        ))}
+        <div className="flex gap-6 h-full overflow-x-auto pb-4">
+          {COLUMNS.map((col) => (
+            <Column
+              key={col.id}
+              columnId={col.id}
+              title={col.title}
+              jobs={jobs.filter((j) => j.status === col.id)}
+              onJobClick={setSelectedJob}
+            />
+          ))}
 
-        <DragOverlay>
-          {activeJob ? <JobCard job={activeJob} /> : null}
-        </DragOverlay>
+          <DragOverlay>
+            {activeJob ? <JobCard job={activeJob} /> : null}
+          </DragOverlay>
+        </div>
       </DndContext>
     </div>
   );

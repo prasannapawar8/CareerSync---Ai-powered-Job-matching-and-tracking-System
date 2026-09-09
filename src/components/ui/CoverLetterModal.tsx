@@ -1,16 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { AlertCircle, Check, Copy, ExternalLink, PenLine, RotateCcw } from 'lucide-react';
 import type { SavedJobData } from './KanbanBoard';
 import { Button } from './Button';
+import { Modal } from './Modal';
 
-export default function CoverLetterModal({
-  job,
-  onClose,
-}: {
-  job: SavedJobData;
-  onClose: () => void;
-}) {
+export default function CoverLetterModal({ job, onClose }: { job: SavedJobData; onClose: () => void }) {
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,104 +17,101 @@ export default function CoverLetterModal({
     setError(null);
 
     try {
-      const res = await fetch('/api/ai/cover-letter', {
+      const response = await fetch('/api/ai/cover-letter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId: job.id }),
       });
+      const data = await response.json();
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to generate cover letter');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Failed to generate cover letter.');
       setCoverLetter(data.coverLetter);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate cover letter.');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleCopy = () => {
-    if (coverLetter) {
-      navigator.clipboard.writeText(coverLetter);
+  const handleCopy = async () => {
+    if (!coverLetter) return;
+    try {
+      await navigator.clipboard.writeText(coverLetter);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError('Clipboard access was blocked — select the text and copy manually.');
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="flex w-full max-w-2xl flex-col rounded-xl border border-border bg-surface p-6 shadow-xl relative max-h-[90vh]">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-md p-1 text-muted hover:bg-surface-muted hover:text-foreground transition-colors"
-        >
-          <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        <h2 className="text-xl font-semibold text-foreground pr-8">
-          Application: {job.title} at {job.company}
-        </h2>
-        
-        <div className="mt-6 flex-1 overflow-y-auto">
-          {!coverLetter ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="mb-4 rounded-full bg-accent/10 p-4 text-accent">
-                <svg className="size-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-foreground">AI Cover Letter Generator</h3>
-              <p className="mt-2 max-w-md text-sm text-muted">
-                Generate a highly tailored cover letter based on your latest uploaded resume and the specific description for this job.
-              </p>
-              
-              <Button
-                className="mt-6 w-full sm:w-auto"
-                onClick={generateCoverLetter}
-                disabled={isGenerating}
-              >
-                {isGenerating ? 'Analyzing & Writing...' : 'Generate Cover Letter'}
+    <Modal
+      onClose={onClose}
+      title={job.title}
+      description={`${job.company}${job.location ? ` · ${job.location}` : ''}`}
+      footer={
+        coverLetter ? (
+          <>
+            <Button variant="ghost" onClick={() => setCoverLetter(null)} leadingIcon={<RotateCcw className="size-4" />}>
+              Start over
+            </Button>
+            <Button variant="outline" onClick={handleCopy} leadingIcon={copied ? <Check className="size-4" /> : <Copy className="size-4" />}>
+              {copied ? 'Copied' : 'Copy'}
+            </Button>
+            <Button onClick={onClose}>Done</Button>
+          </>
+        ) : (
+          <>
+            <a href={job.applyUrl} target="_blank" rel="noreferrer">
+              <Button variant="ghost" trailingIcon={<ExternalLink className="size-4" />}>
+                View posting
               </Button>
+            </a>
+            <Button onClick={generateCoverLetter} loading={isGenerating} leadingIcon={<PenLine className="size-4" />}>
+              {isGenerating ? 'Writing…' : 'Generate cover letter'}
+            </Button>
+          </>
+        )
+      }
+    >
+      {error && (
+        <div
+          role="alert"
+          className="mb-5 flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger-surface px-3.5 py-3 text-sm text-danger"
+        >
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {error}
+        </div>
+      )}
 
-              {error && (
-                <p className="mt-4 text-sm font-medium text-danger bg-danger/10 px-4 py-2 rounded-lg">
-                  {error}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium text-foreground">Generated Cover Letter</h3>
-                <Button variant="outline" size="sm" onClick={handleCopy}>
-                  {copied ? 'Copied!' : 'Copy to Clipboard'}
-                </Button>
-              </div>
-              <textarea
-                readOnly
-                className="w-full flex-1 min-h-[300px] resize-none rounded-lg border border-border bg-surface-muted p-4 text-sm text-foreground outline-none focus:border-accent"
-                value={coverLetter}
-              />
-              <div className="mt-4 flex justify-end gap-3">
-                <Button variant="ghost" onClick={() => setCoverLetter(null)}>
-                  Discard
-                </Button>
-                <Button variant="default" onClick={onClose}>
-                  Done
-                </Button>
-              </div>
+      {coverLetter ? (
+        <textarea
+          readOnly
+          value={coverLetter}
+          aria-label="Generated cover letter"
+          className="min-h-80 w-full resize-y rounded-card border border-border bg-surface-muted p-4 text-sm leading-6 text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/25"
+        />
+      ) : (
+        <div className="py-6 text-center">
+          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary-soft text-primary">
+            <PenLine className="size-6" />
+          </span>
+          <h3 className="mt-5 font-semibold tracking-tight text-foreground">Draft a tailored cover letter</h3>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted">
+            CareerSync reads your latest resume alongside this job description and writes a first draft you can edit and
+            send.
+          </p>
+
+          {isGenerating && (
+            <div className="mx-auto mt-8 max-w-md space-y-2.5" aria-hidden="true">
+              <div className="h-3 w-full rounded skeleton" />
+              <div className="h-3 w-[92%] rounded skeleton" />
+              <div className="h-3 w-[97%] rounded skeleton" />
+              <div className="h-3 w-[70%] rounded skeleton" />
             </div>
           )}
         </div>
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }

@@ -45,16 +45,20 @@ export async function POST(request: Request) {
     });
 
     // Return the user without the password
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _password, ...userWithoutPassword } = user;
+    void _password;
 
     return NextResponse.json(
       { success: true, user: userWithoutPassword },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Registration Error:', error);
     return NextResponse.json(
-      { error: 'An error occurred during registration', details: error.message },
+      {
+        error: 'An error occurred during registration',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

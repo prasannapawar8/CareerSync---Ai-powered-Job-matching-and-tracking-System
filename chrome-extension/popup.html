@@ -1,131 +1,243 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>CareerSync Web Clipper</title>
   <style>
+    /* Mirrors the CareerSync web design tokens so the popup feels native. */
+    :root {
+      color-scheme: light dark;
+
+      --background: #f6f7fa;
+      --surface: #ffffff;
+      --surface-muted: #f0f2f7;
+      --foreground: #0e1526;
+      --muted: #59617a;
+      --subtle: #8a92a6;
+      --border: #e3e6ee;
+      --border-strong: #ccd2e0;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-foreground: #ffffff;
+      --primary-soft: #eef1ff;
+      --success: #047857;
+      --success-surface: #e7f8f1;
+      --danger: #dc2626;
+      --danger-surface: #fdeeee;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #08090f;
+        --surface: #101219;
+        --surface-muted: #171a24;
+        --foreground: #eef1f7;
+        --muted: #99a1b5;
+        --subtle: #69718a;
+        --border: #22252f;
+        --border-strong: #333848;
+        --primary: #7c83f7;
+        --primary-hover: #949afa;
+        --primary-foreground: #0a0b14;
+        --primary-soft: #191b32;
+        --success: #34d399;
+        --success-surface: #08281f;
+        --danger: #f87171;
+        --danger-surface: #2c1113;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      width: 320px;
+      width: 340px;
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f7f7f5;
-      color: #1c1c1a;
+      background: var(--background);
+      color: var(--foreground);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
-    .container {
-      padding: 16px;
-    }
+
+    .container { padding: 16px; }
+
     .header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-weight: 600;
+      gap: 10px;
+      padding-bottom: 14px;
       margin-bottom: 16px;
-      border-bottom: 1px solid #deded8;
-      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
     }
+
     .logo {
-      width: 24px;
-      height: 24px;
-      background-color: #1c1c1a;
-      color: white;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--primary);
+      color: var(--primary-foreground);
+      box-shadow: 0 8px 20px -8px rgb(79 70 229 / 0.5);
     }
-    .form-group {
-      margin-bottom: 12px;
+    .logo svg { width: 16px; height: 16px; }
+
+    .brand { font-weight: 600; letter-spacing: -0.01em; }
+    .brand small {
+      display: block;
+      font-weight: 400;
+      font-size: 11px;
+      color: var(--subtle);
+      letter-spacing: 0;
     }
+
+    .intro {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    .form-group { margin-bottom: 12px; }
+
     label {
       display: block;
-      font-size: 12px;
-      font-weight: 500;
-      margin-bottom: 4px;
-      color: #6b6b66;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+      color: var(--subtle);
     }
-    input[type="text"], input[type="url"], textarea {
+
+    input[type="text"],
+    input[type="url"],
+    textarea {
       width: 100%;
-      box-sizing: border-box;
-      padding: 8px;
-      border: 1px solid #deded8;
-      border-radius: 6px;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--foreground);
+      font: inherit;
       font-size: 13px;
       outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    input:focus, textarea:focus {
-      border-color: #1c1c1a;
+
+    input::placeholder { color: var(--subtle); }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent);
     }
+
+    input[readonly] {
+      background: var(--surface-muted);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     button {
       width: 100%;
-      padding: 10px;
-      background-color: #1c1c1a;
-      color: white;
-      border: none;
-      border-radius: 6px;
+      padding: 10px 14px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: var(--primary);
+      color: var(--primary-foreground);
+      font: inherit;
       font-weight: 500;
       cursor: pointer;
       margin-top: 8px;
+      transition: background-color 0.15s ease, transform 0.1s ease;
     }
-    button:hover {
-      opacity: 0.85;
+    button:hover { background: var(--primary-hover); }
+    button:active { transform: scale(0.985); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    button.secondary {
+      background: transparent;
+      color: var(--muted);
+      border-color: var(--border);
+      margin-top: 14px;
     }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    button.secondary:hover {
+      background: var(--surface-muted);
+      color: var(--foreground);
     }
-    .hidden {
-      display: none;
+
+    .hidden { display: none; }
+
+    .error,
+    .success {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
     }
     .error {
-      color: #ae3131;
-      font-size: 12px;
-      margin-top: 8px;
+      color: var(--danger);
+      background: var(--danger-surface);
+      border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent);
     }
     .success {
-      color: #1f6b45;
-      font-size: 12px;
-      margin-top: 8px;
+      color: var(--success);
+      background: var(--success-surface);
+      border: 1px solid color-mix(in oklab, var(--success) 30%, transparent);
       text-align: center;
-      font-weight: 500;
+    }
+
+    .hint {
+      margin: 12px 0 0;
+      font-size: 11px;
+      color: var(--subtle);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">C</div>
-      <span>CareerSync</span>
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 15.5 12 4l8 11.5-8 4.5-8-4.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M12 4v16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="brand">
+        CareerSync
+        <small>Web clipper</small>
+      </div>
     </div>
 
     <!-- SETTINGS VIEW -->
     <div id="settings-view" class="hidden">
-      <p style="font-size: 13px; margin-bottom: 16px;">Please enter your API token to connect your CareerSync account.</p>
+      <p class="intro">Paste the API token from your CareerSync dashboard to link this extension to your account.</p>
       <div class="form-group">
-        <label>API Token</label>
-        <input type="text" id="api-token" placeholder="Paste token here...">
+        <label for="api-token">API token</label>
+        <input type="text" id="api-token" placeholder="Paste token here…">
       </div>
-      <button id="save-settings-btn">Save Token</button>
+      <button id="save-settings-btn">Connect account</button>
       <div id="settings-msg"></div>
+      <p class="hint">Find it under Dashboard → Web clipper.</p>
     </div>
 
     <!-- CLIP VIEW -->
     <div id="clip-view" class="hidden">
       <div class="form-group">
-        <label>Job Title</label>
+        <label for="job-title">Job title</label>
         <input type="text" id="job-title" placeholder="e.g. Software Engineer">
       </div>
       <div class="form-group">
-        <label>Company</label>
-        <input type="text" id="job-company" placeholder="e.g. Google">
+        <label for="job-company">Company</label>
+        <input type="text" id="job-company" placeholder="e.g. Northwind">
       </div>
       <div class="form-group">
-        <label>Apply URL</label>
-        <input type="url" id="job-url" readonly style="background-color: #f1f1ee;">
+        <label for="job-url">Apply URL</label>
+        <input type="url" id="job-url" readonly>
       </div>
-      <button id="clip-btn">Save to Board</button>
+      <button id="clip-btn">Save to board</button>
       <div id="clip-msg"></div>
-      <button id="clear-token-btn" style="background: transparent; color: #6b6b66; border: 1px solid #deded8; margin-top: 12px;">Disconnect Account</button>
+      <button id="clear-token-btn" class="secondary">Disconnect account</button>
     </div>
   </div>
 

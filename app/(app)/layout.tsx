@@ -1,14 +1,26 @@
-import Navbar from '@/src/components/ui/Navbar';
+import { redirect } from 'next/navigation';
+import { auth, signOut } from '@/src/lib/auth';
+import AppShell from '@/src/components/ui/AppShell';
 
 /**
- * Layout for authenticated app pages (dashboard, jobs, etc.)
- * Includes the persistent Navbar.
+ * Shell for authenticated pages: persistent sidebar on desktop, drawer on
+ * mobile. Auth is checked once here rather than in each page.
  */
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  if (!session?.user?.id) redirect('/login');
+
+  async function handleSignOut() {
+    'use server';
+    await signOut({ redirectTo: '/login' });
+  }
+
   return (
-    <>
-      <Navbar />
-      <main className="flex-1">{children}</main>
-    </>
+    <AppShell
+      user={{ name: session.user.name, email: session.user.email }}
+      signOutAction={handleSignOut}
+    >
+      {children}
+    </AppShell>
   );
 }

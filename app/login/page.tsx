@@ -4,9 +4,126 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AlertCircle } from 'lucide-react';
+import AuthLayout from '@/src/components/ui/AuthLayout';
+import { Button } from '@/src/components/ui/Button';
+import { Field, Input } from '@/src/components/ui/Field';
 
 export default function LoginPage() {
-  const router = useRouter(); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [isLoading, setIsLoading] = useState(false);
-  const handleSubmit = async (event: React.FormEvent) => { event.preventDefault(); setIsLoading(true); setError(''); try { const result = await signIn('credentials', { email, password, redirect: false }); if (result?.error) setError('Invalid email or password'); else { router.push('/dashboard'); router.refresh(); } } catch { setError('An error occurred. Please try again.'); } finally { setIsLoading(false); } };
-  return <main className="flex min-h-screen items-center justify-center px-5 py-12"><div className="w-full max-w-md"><Link href="/" className="mb-10 flex items-center justify-center gap-2.5 font-semibold tracking-tight text-foreground"><span className="grid size-8 place-items-center rounded-lg bg-accent text-accent-foreground">C</span>CareerSync</Link><section className="rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-8"><p className="text-sm font-medium text-muted">WELCOME BACK</p><h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">Sign in to CareerSync</h1><p className="mt-2 text-sm leading-6 text-muted">Continue your focused job search.</p>{error && <div className="mt-5 rounded-lg border border-danger bg-danger-surface p-3 text-sm text-danger">{error}</div>}<form onSubmit={handleSubmit} className="mt-7 space-y-5"><label className="block text-sm font-medium text-foreground">Email<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-foreground outline-none transition focus:border-foreground" placeholder="you@example.com" /></label><label className="block text-sm font-medium text-foreground">Password<input type="password" required value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-foreground outline-none transition focus:border-foreground" placeholder="••••••••" /></label><button type="submit" disabled={isLoading} className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50">{isLoading ? 'Signing in…' : 'Sign in'}</button></form><div className="my-6 flex items-center gap-3 text-xs text-subtle before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">OR</div><button onClick={() => signIn('google', { callbackUrl: '/dashboard' })} className="w-full rounded-lg border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted">Continue with Google</button><p className="mt-6 text-center text-sm text-muted">New to CareerSync? <Link href="/register" className="font-medium text-foreground underline underline-offset-4">Create an account</Link></p></section></div></main>;
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const result = await signIn('credentials', { email, password, redirect: false });
+      if (result?.error) {
+        setError('Invalid email or password.');
+      } else {
+        router.push('/dashboard');
+        router.refresh();
+      }
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <AuthLayout
+      eyebrow="Welcome back"
+      title="Sign in to CareerSync"
+      subtitle="Pick up your search where you left it."
+      footer={
+        <>
+          New to CareerSync?{' '}
+          <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      {error && (
+        <div
+          role="alert"
+          className="mb-6 flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger-surface px-3.5 py-3 text-sm text-danger"
+        >
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
+          />
+        </Field>
+
+        <Field label="Password" htmlFor="password">
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="••••••••"
+          />
+        </Field>
+
+        <Button type="submit" size="lg" loading={isLoading} className="w-full">
+          {isLoading ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+
+      <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wider text-subtle before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+        or
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="lg"
+        className="w-full"
+        onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+        leadingIcon={<GoogleIcon />}
+      >
+        Continue with Google
+      </Button>
+    </AuthLayout>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg className="size-4" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M23.5 12.27c0-.86-.08-1.68-.22-2.47H12v4.68h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.86c2.26-2.08 3.58-5.15 3.58-8.83Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.96-1.08 7.94-2.9l-3.86-3c-1.07.72-2.45 1.15-4.08 1.15-3.14 0-5.8-2.12-6.75-4.97H1.28v3.09A12 12 0 0 0 12 24Z"
+      />
+      <path fill="#FBBC05" d="M5.25 14.28a7.2 7.2 0 0 1 0-4.56V6.63H1.28a12 12 0 0 0 0 10.74l3.97-3.09Z" />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.96 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.63l3.97 3.09C6.2 6.87 8.86 4.75 12 4.75Z"
+      />
+    </svg>
+  );
 }

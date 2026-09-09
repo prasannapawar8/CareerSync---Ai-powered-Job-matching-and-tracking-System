@@ -3,9 +3,114 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AlertCircle } from 'lucide-react';
+import AuthLayout from '@/src/components/ui/AuthLayout';
+import { Button } from '@/src/components/ui/Button';
+import { Field, Input } from '@/src/components/ui/Field';
 
 export default function RegisterPage() {
-  const router = useRouter(); const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [isLoading, setIsLoading] = useState(false);
-  const handleSubmit = async (event: React.FormEvent) => { event.preventDefault(); setIsLoading(true); setError(''); try { const response = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password }) }); const data = await response.json(); if (!response.ok) setError(data.error || 'Something went wrong'); else router.push('/login'); } catch { setError('An error occurred. Please try again.'); } finally { setIsLoading(false); } };
-  return <main className="flex min-h-screen items-center justify-center px-5 py-12"><div className="w-full max-w-md"><Link href="/" className="mb-10 flex items-center justify-center gap-2.5 font-semibold tracking-tight text-foreground"><span className="grid size-8 place-items-center rounded-lg bg-accent text-accent-foreground">C</span>CareerSync</Link><section className="rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-8"><p className="text-sm font-medium text-muted">GET STARTED</p><h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">Create your account</h1><p className="mt-2 text-sm leading-6 text-muted">Set up your workspace in a few minutes.</p>{error && <div className="mt-5 rounded-lg border border-danger bg-danger-surface p-3 text-sm text-danger">{error}</div>}<form onSubmit={handleSubmit} className="mt-7 space-y-5"><label className="block text-sm font-medium text-foreground">Full name<input type="text" required value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-foreground outline-none transition focus:border-foreground" placeholder="Alex Morgan" /></label><label className="block text-sm font-medium text-foreground">Email<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-foreground outline-none transition focus:border-foreground" placeholder="you@example.com" /></label><label className="block text-sm font-medium text-foreground">Password<input type="password" required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-foreground outline-none transition focus:border-foreground" placeholder="At least 6 characters" /></label><button type="submit" disabled={isLoading} className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50">{isLoading ? 'Creating account…' : 'Create account'}</button></form><p className="mt-6 text-center text-sm text-muted">Already have an account? <Link href="/login" className="font-medium text-foreground underline underline-offset-4">Sign in</Link></p></section></div></main>;
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Something went wrong.');
+      } else {
+        router.push('/login');
+      }
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <AuthLayout
+      eyebrow="Get started"
+      title="Create your account"
+      subtitle="Set up your workspace in a couple of minutes."
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      {error && (
+        <div
+          role="alert"
+          className="mb-6 flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger-surface px-3.5 py-3 text-sm text-danger"
+        >
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <Field label="Full name" htmlFor="name">
+          <Input
+            id="name"
+            type="text"
+            autoComplete="name"
+            required
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Alex Morgan"
+          />
+        </Field>
+
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
+          />
+        </Field>
+
+        <Field label="Password" htmlFor="password" hint="At least 6 characters.">
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={6}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="••••••••"
+          />
+        </Field>
+
+        <Button type="submit" size="lg" loading={isLoading} className="w-full">
+          {isLoading ? 'Creating account…' : 'Create account'}
+        </Button>
+      </form>
+
+      <p className="mt-5 text-center text-xs leading-5 text-subtle">
+        Your resume text is stored against your account and used only to score jobs and draft letters.
+      </p>
+    </AuthLayout>
+  );
 }
